@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.db.models.transaction import Transaction
 from app.schemas.transaction import TransactionCreate, TransactionResponse
+from app.core.security import get_current_user
+from app.db.models.user import User
+
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -21,9 +24,10 @@ def get_db():
 def create_transaction(
     transaction: TransactionCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     new_transaction = Transaction(
-        user_id=1,
+        user_id=current_user.id,
         category_id=transaction.category_id,
         type=transaction.type,
         amount=transaction.amount,
@@ -37,24 +41,28 @@ def create_transaction(
 
     return new_transaction
 
+
 @router.get("/", response_model=list[TransactionResponse])
 def get_transactions(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     transactions = db.query(Transaction).filter(
-        Transaction.user_id == 1
+        Transaction.user_id == current_user.id
     ).all()
 
     return transactions
+
 
 @router.delete("/{transaction_id}")
 def delete_transaction(
     transaction_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     transaction = db.query(Transaction).filter(
         Transaction.id == transaction_id,
-        Transaction.user_id == 1,
+        Transaction.user_id == current_user.id,
     ).first()
 
     if not transaction:
@@ -65,15 +73,17 @@ def delete_transaction(
 
     return {"message": "Transaction deleted"}
 
+
 @router.put("/{transaction_id}", response_model=TransactionResponse)
 def update_transaction(
     transaction_id: int,
     transaction: TransactionCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     existing_transaction = db.query(Transaction).filter(
         Transaction.id == transaction_id,
-        Transaction.user_id == 1,
+        Transaction.user_id == current_user.id,
     ).first()
 
     if not existing_transaction:

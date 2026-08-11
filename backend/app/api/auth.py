@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from app.db.database import SessionLocal
 from app.db.models.user import User
 from app.schemas.auth import LoginRequest
+from app.core.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -39,8 +40,9 @@ def login(
             detail="Invalid email or password",
         )
 
+    access_token = create_access_token(user.id)
+
     return {
-        "message": "Login successful",
-        "user_id": user.id,
-        "email": user.email,
+        "access_token": access_token,
+        "token_type": "bearer",
     }
