@@ -3,4 +3,5 @@ uvicorn[standard]
 sqlalchemy
 psycopg[binary]
 alembic
-bcrypt
+bcrypt==4.0.1
+passlib==1.7.4
