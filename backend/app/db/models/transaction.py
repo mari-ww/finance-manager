@@ -22,19 +22,19 @@ class Transaction(Base):
         nullable=False,
     )
 
-    type: Mapped[str] = mapped_column(
-        String(20),
-        nullable=False,
-    )
-
     amount: Mapped[Decimal] = mapped_column(
         Numeric(12, 2),
         nullable=False,
     )
 
-    description: Mapped[str] = mapped_column(
-        String(255),
+    type: Mapped[str] = mapped_column(
+        String(20),
         nullable=False,
+    )
+
+    description: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
     )
 
     date: Mapped[date] = mapped_column(
@@ -45,12 +45,5 @@ class Transaction(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
-        nullable=False,
-    )
-
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
         nullable=False,
     )

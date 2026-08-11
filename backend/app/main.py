@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 from app.api.categories import router as categories_router
 from app.api.users import router as users_router
+from app.api.transactions import router as transactions_router
 
 from app.db.database import engine
 from app.db.models.user import User
@@ -13,7 +14,7 @@ app = FastAPI(title="Finance Manager")
 
 app.include_router(categories_router)
 app.include_router(users_router)
-
+app.include_router(transactions_router)
 
 @app.get("/")
 def root():
