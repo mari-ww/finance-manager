@@ -21,6 +21,7 @@ if config.config_file_name is not None:
 from app.db.database import Base
 from app.db.models.user import User
 from app.db.models.category import Category
+from app.db.models.transaction import Transaction
 
 target_metadata = Base.metadata
 
