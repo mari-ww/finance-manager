@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
+from app.db.models.category import Category
 from app.db.models.transaction import Transaction
 from app.schemas.transaction import TransactionCreate, TransactionResponse
 from app.core.security import get_current_user
@@ -26,6 +27,14 @@ def create_transaction(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
+    category = db.query(Category).filter(
+        Category.id == transaction.category_id,
+        Category.user_id == current_user.id,
+    ).first()
+
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
     new_transaction = Transaction(
         user_id=current_user.id,
         category_id=transaction.category_id,
