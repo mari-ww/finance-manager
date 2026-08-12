@@ -5,8 +5,14 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f5f7fa;
-  color: #222;
+  background: #f4f6f8;
+  color: #1f2937;
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
 
 button {
@@ -22,48 +28,85 @@ button {
   justify-content: space-between;
   align-items: center;
   padding: 20px 40px;
-  background: white;
-  border-bottom: 1px solid #ddd;
+  background: #111827;
+  color: white;
 }
 
 .header h1 {
   margin: 0;
+  font-size: 24px;
 }
 
 .header button {
-  padding: 10px 18px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #374151;
+  color: white;
+}
+
+.header button:hover {
+  background: #4b5563;
 }
 
 .container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  width: min(1100px, 92%);
+  margin: 30px auto;
 }
 
-section {
-  margin-bottom: 40px;
+.container > section {
+  margin-bottom: 30px;
 }
+
+/* Títulos */
+
+h2 {
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+h3 {
+  margin-top: 0;
+}
+
+/* Resumo */
 
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 16px;
+  margin-bottom: 30px;
 }
 
 .card {
-  padding: 24px;
-  background: white;
+  padding: 20px;
   border-radius: 10px;
-  border: 1px solid #ddd;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .card h3 {
-  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #6b7280;
 }
 
 .card p {
+  margin: 0;
   font-size: 24px;
   font-weight: bold;
+}
+
+/* Formulários */
+
+.transaction-form,
+.category-form {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .form-group {
@@ -72,73 +115,141 @@ section {
   gap: 6px;
 }
 
-.transaction-form {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  padding: 24px;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-}
-
-.transaction-form button {
-  width: fit-content;
-  padding: 10px 18px;
+.form-group label {
+  font-weight: bold;
+  font-size: 14px;
 }
 
 input,
 select {
+  width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 15px;
+  background: white;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid #2563eb;
+  border-color: #2563eb;
 }
 
 button {
-  padding: 10px 18px;
-  border: 0;
+  padding: 9px 14px;
+  border: none;
   border-radius: 6px;
-  background: #222;
+  background: #2563eb;
   color: white;
-  font-size: 15px;
 }
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button + button {
+  margin-left: 8px;
+  background: #6b7280;
+}
+
+button + button:hover {
+  background: #4b5563;
+}
+
+/* Categorias */
+
+.category-manager {
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.category-list {
+  margin-top: 20px;
+}
+
+.category-list ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.category-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.category-list li:last-child {
+  border-bottom: none;
+}
+
+.category-list li > span:nth-child(2) {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Tabela */
 
 .table-container {
   overflow-x: auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
 }
 
 th,
 td {
   padding: 14px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 th {
-  background: #f0f0f0;
+  background: #f9fafb;
+  font-size: 14px;
+  color: #4b5563;
 }
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Login */
 
 .login-page {
   min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 .login-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 32px;
+  width: min(400px, 100%);
+  padding: 30px;
   background: white;
-  border: 1px solid #ddd;
   border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.login-card h1 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.login-card > p {
+  text-align: center;
+  color: #6b7280;
 }
 
 .login-card form {
@@ -148,23 +259,34 @@ th {
 }
 
 .error {
-  color: #c00;
+  margin: 0;
+  color: #dc2626;
+  font-size: 14px;
 }
 
+/* Responsivo */
+
 @media (max-width: 700px) {
+  .header {
+    padding: 16px 20px;
+  }
+
+  .container {
+    width: 94%;
+    margin: 20px auto;
+  }
+
   .summary {
     grid-template-columns: 1fr;
   }
 
-  .transaction-form {
-    grid-template-columns: 1fr;
+  .category-list li {
+    flex-wrap: wrap;
   }
 
-  .header {
-    padding: 20px;
-  }
-
-  .container {
-    padding: 25px 15px;
+  th,
+  td {
+    padding: 10px;
+    font-size: 14px;
   }
 }

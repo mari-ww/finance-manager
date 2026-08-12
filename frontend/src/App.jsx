@@ -3,6 +3,7 @@ import Login from "./components/Login"
 import Summary from "./components/Summary"
 import TransactionForm from "./components/TransactionForm"
 import TransactionList from "./components/TransactionList"
+import CategoryManager from "./components/CategoryManager"
 import "./App.css"
 
 const API_URL = "http://localhost:8000"
@@ -52,6 +53,76 @@ function App() {
     setTransactions(data)
   }
 
+  async function handleUpdateCategory(categoryId, category) {
+  const token = localStorage.getItem("token")
+
+  const response = await fetch(
+    `${API_URL}/categories/${categoryId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(category),
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    console.error("Erro ao atualizar categoria:", data)
+    return
+  }
+
+  await getCategories()
+}
+
+async function handleDeleteCategory(categoryId) {
+  const token = localStorage.getItem("token")
+
+  const response = await fetch(
+    `${API_URL}/categories/${categoryId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    console.error("Erro ao excluir categoria:", data)
+    return
+  }
+
+  await getCategories()
+}
+
+  async function handleCreateCategory(category) {
+    const token = localStorage.getItem("token")
+
+    const response = await fetch(`${API_URL}/categories/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(category),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error("Erro ao criar categoria:", data)
+      return
+    }
+
+    await getCategories()
+  }
+
   async function handleCreateTransaction(transaction) {
     const token = localStorage.getItem("token")
 
@@ -75,59 +146,63 @@ function App() {
   }
 
   async function handleDeleteTransaction(transactionId) {
-  const confirmed = window.confirm(
-    "Tem certeza que deseja excluir esta transação?"
-  )
+    const confirmed = window.confirm(
+      "Tem certeza que deseja excluir esta transação?"
+    )
 
-  if (!confirmed) {
-    return
-  }
-
-  const token = localStorage.getItem("token")
-
-  const response = await fetch(
-    `${API_URL}/transactions/${transactionId}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    if (!confirmed) {
+      return
     }
-  )
 
-  if (!response.ok) {
-    console.error("Erro ao excluir transação")
-    return
-  }
+    const token = localStorage.getItem("token")
 
-  await getTransactions()
-}
+    const response = await fetch(
+      `${API_URL}/transactions/${transactionId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
-async function handleUpdateTransaction(transactionId, transaction) {
-  const token = localStorage.getItem("token")
-
-  const response = await fetch(
-    `${API_URL}/transactions/${transactionId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(transaction),
+    if (!response.ok) {
+      console.error("Erro ao excluir transação")
+      return
     }
-  )
 
-  const data = await response.json()
-
-  if (!response.ok) {
-    console.error("Erro ao atualizar transação:", data)
-    return
+    await getTransactions()
   }
 
-  setEditingTransaction(null)
-  await getTransactions()
-}
+  async function handleUpdateTransaction(
+    transactionId,
+    transaction
+  ) {
+    const token = localStorage.getItem("token")
+
+    const response = await fetch(
+      `${API_URL}/transactions/${transactionId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(transaction),
+      }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error("Erro ao atualizar transação:", data)
+      return
+    }
+
+    setEditingTransaction(null)
+
+    await getTransactions()
+  }
 
   function handleLogin() {
     setIsLoggedIn(true)
@@ -135,9 +210,11 @@ async function handleUpdateTransaction(transactionId, transaction) {
 
   function handleLogout() {
     localStorage.removeItem("token")
+
     setIsLoggedIn(false)
     setTransactions([])
     setCategories([])
+    setEditingTransaction(null)
   }
 
   useEffect(() => {
@@ -165,6 +242,13 @@ async function handleUpdateTransaction(transactionId, transaction) {
       <main className="container">
 
         <Summary transactions={transactions} />
+
+        <CategoryManager
+          categories={categories}
+          onCreateCategory={handleCreateCategory}
+          onUpdateCategory={handleUpdateCategory}
+          onDeleteCategory={handleDeleteCategory}
+        />
 
         <TransactionForm
           categories={categories}
