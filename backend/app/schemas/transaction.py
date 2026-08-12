@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class TransactionCreate(BaseModel):
@@ -12,8 +12,8 @@ class TransactionCreate(BaseModel):
     description: str | None = None
     date: date
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "category_id": 3,
                 "type": "expense",
@@ -22,7 +22,8 @@ class TransactionCreate(BaseModel):
                 "date": "2026-08-12"
             }
         }
-    }
+    )
+
 
 class TransactionResponse(BaseModel):
     id: int
@@ -33,5 +34,4 @@ class TransactionResponse(BaseModel):
     description: str | None
     date: date
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

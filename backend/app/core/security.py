@@ -1,6 +1,7 @@
 import bcrypt
-from datetime import datetime, timedelta, timezone
+import os
 
+from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -10,7 +11,7 @@ from app.db.database import SessionLocal
 from app.db.models.user import User
 
 
-SECRET_KEY = "dev-secret-key-change-later"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

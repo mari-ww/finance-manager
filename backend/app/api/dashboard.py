@@ -3,7 +3,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import date
+from datetime import datetime, timezone
 
 from app.db.database import SessionLocal
 from app.db.models.transaction import Transaction
