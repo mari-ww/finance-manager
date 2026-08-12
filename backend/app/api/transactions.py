@@ -24,7 +24,7 @@ def get_db():
 def create_transaction(
     transaction: TransactionCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     new_transaction = Transaction(
         user_id=current_user.id,
@@ -45,7 +45,7 @@ def create_transaction(
 @router.get("/", response_model=list[TransactionResponse])
 def get_transactions(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     transactions = db.query(Transaction).filter(
         Transaction.user_id == current_user.id
@@ -58,7 +58,7 @@ def get_transactions(
 def delete_transaction(
     transaction_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     transaction = db.query(Transaction).filter(
         Transaction.id == transaction_id,
@@ -79,7 +79,7 @@ def update_transaction(
     transaction_id: int,
     transaction: TransactionCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     existing_transaction = db.query(Transaction).filter(
         Transaction.id == transaction_id,

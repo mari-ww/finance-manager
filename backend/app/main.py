@@ -5,6 +5,7 @@ from app.api.categories import router as categories_router
 from app.api.users import router as users_router
 from app.api.transactions import router as transactions_router
 from app.api.auth import router as auth_router
+from app.api.dashboard import router as dashboard_router
 
 from app.db.database import engine
 from app.db.models.user import User
@@ -17,6 +18,7 @@ app.include_router(categories_router)
 app.include_router(users_router)
 app.include_router(transactions_router)
 app.include_router(auth_router)
+app.include_router(dashboard_router)
 
 @app.get("/")
 def root():
