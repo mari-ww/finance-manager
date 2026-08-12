@@ -12,8 +12,12 @@ function TransactionForm({
   const [amount, setAmount] = useState("")
   const [description, setDescription] = useState("")
   const [date, setDate] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
+    setError("")
+
     if (editingTransaction) {
       setCategoryId(String(editingTransaction.category_id))
       setType(editingTransaction.type)
@@ -26,6 +30,9 @@ function TransactionForm({
   async function handleSubmit(event) {
     event.preventDefault()
 
+    setError("")
+    setLoading(true)
+
     const transaction = {
       category_id: Number(categoryId),
       type,
@@ -34,16 +41,23 @@ function TransactionForm({
       date,
     }
 
-    if (editingTransaction) {
-      await onUpdateTransaction(
-        editingTransaction.id,
-        transaction
-      )
-    } else {
-      await onCreateTransaction(transaction)
-    }
+    try {
+      if (editingTransaction) {
+        await onUpdateTransaction(
+          editingTransaction.id,
+          transaction
+        )
+      } else {
+        await onCreateTransaction(transaction)
+      }
 
-    resetForm()
+      resetForm()
+    } catch (error) {
+      console.error("Erro ao salvar transação:", error)
+      setError("Não foi possível salvar a transação.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   function resetForm() {
@@ -52,16 +66,20 @@ function TransactionForm({
     setAmount("")
     setDescription("")
     setDate("")
+    setError("")
   }
 
   function handleCancel() {
+    if (loading) {
+      return
+    }
+
     resetForm()
     onCancelEdit()
   }
 
   return (
     <section>
-
       <h2>
         {editingTransaction
           ? "Editar transação"
@@ -72,7 +90,6 @@ function TransactionForm({
         className="transaction-form"
         onSubmit={handleSubmit}
       >
-
         <div className="form-group">
           <label>Categoria</label>
 
@@ -81,6 +98,7 @@ function TransactionForm({
             onChange={(event) =>
               setCategoryId(event.target.value)
             }
+            disabled={loading}
             required
           >
             <option value="">
@@ -106,6 +124,7 @@ function TransactionForm({
             onChange={(event) =>
               setType(event.target.value)
             }
+            disabled={loading}
           >
             <option value="expense">
               Despesa
@@ -128,6 +147,7 @@ function TransactionForm({
             onChange={(event) =>
               setAmount(event.target.value)
             }
+            disabled={loading}
             required
           />
         </div>
@@ -141,6 +161,7 @@ function TransactionForm({
             onChange={(event) =>
               setDescription(event.target.value)
             }
+            disabled={loading}
           />
         </div>
 
@@ -153,29 +174,37 @@ function TransactionForm({
             onChange={(event) =>
               setDate(event.target.value)
             }
+            disabled={loading}
             required
           />
         </div>
 
+        {error && (
+          <p className="error">
+            {error}
+          </p>
+        )}
+
         <div>
-          <button type="submit">
-            {editingTransaction
-              ? "Salvar alterações"
-              : "Adicionar transação"}
+          <button type="submit" disabled={loading}>
+            {loading
+              ? "Salvando..."
+              : editingTransaction
+                ? "Salvar alterações"
+                : "Adicionar transação"}
           </button>
 
           {editingTransaction && (
             <button
               type="button"
               onClick={handleCancel}
+              disabled={loading}
             >
               Cancelar
             </button>
           )}
         </div>
-
       </form>
-
     </section>
   )
 }

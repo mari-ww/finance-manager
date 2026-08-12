@@ -9,8 +9,12 @@ function CategoryManager({
   const [name, setName] = useState("")
   const [type, setType] = useState("expense")
   const [editingCategory, setEditingCategory] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
+    setError("")
+
     if (editingCategory) {
       setName(editingCategory.name)
       setType(editingCategory.type)
@@ -24,27 +28,46 @@ function CategoryManager({
       return
     }
 
+    setError("")
+    setLoading(true)
+
     const category = {
       name: name.trim(),
       type,
     }
 
-    if (editingCategory) {
-      await onUpdateCategory(editingCategory.id, category)
-      setEditingCategory(null)
-    } else {
-      await onCreateCategory(category)
-    }
+    try {
+      if (editingCategory) {
+        await onUpdateCategory(
+          editingCategory.id,
+          category
+        )
 
-    resetForm()
+        setEditingCategory(null)
+      } else {
+        await onCreateCategory(category)
+      }
+
+      resetForm()
+    } catch (error) {
+      console.error("Erro ao salvar categoria:", error)
+      setError("Não foi possível salvar a categoria.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   function resetForm() {
     setName("")
     setType("expense")
+    setError("")
   }
 
   function handleCancel() {
+    if (loading) {
+      return
+    }
+
     setEditingCategory(null)
     resetForm()
   }
@@ -58,7 +81,17 @@ function CategoryManager({
       return
     }
 
-    await onDeleteCategory(categoryId)
+    setError("")
+    setLoading(true)
+
+    try {
+      await onDeleteCategory(categoryId)
+    } catch (error) {
+      console.error("Erro ao excluir categoria:", error)
+      setError("Não foi possível excluir a categoria.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -83,6 +116,7 @@ function CategoryManager({
               setName(event.target.value)
             }
             placeholder="Ex: Alimentação"
+            disabled={loading}
             required
           />
         </div>
@@ -95,6 +129,7 @@ function CategoryManager({
             onChange={(event) =>
               setType(event.target.value)
             }
+            disabled={loading}
           >
             <option value="expense">
               Despesa
@@ -106,17 +141,26 @@ function CategoryManager({
           </select>
         </div>
 
+        {error && (
+          <p className="error">
+            {error}
+          </p>
+        )}
+
         <div>
-          <button type="submit">
-            {editingCategory
-              ? "Salvar alterações"
-              : "Adicionar categoria"}
+          <button type="submit" disabled={loading}>
+            {loading
+              ? "Salvando..."
+              : editingCategory
+                ? "Salvar alterações"
+                : "Adicionar categoria"}
           </button>
 
           {editingCategory && (
             <button
               type="button"
               onClick={handleCancel}
+              disabled={loading}
             >
               Cancelar
             </button>
@@ -147,6 +191,7 @@ function CategoryManager({
                     onClick={() =>
                       setEditingCategory(category)
                     }
+                    disabled={loading}
                   >
                     Editar
                   </button>
@@ -156,6 +201,7 @@ function CategoryManager({
                     onClick={() =>
                       handleDelete(category.id)
                     }
+                    disabled={loading}
                   >
                     Excluir
                   </button>

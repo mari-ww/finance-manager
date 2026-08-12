@@ -6,33 +6,42 @@ function Login({ onLogin }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   async function handleLogin(event) {
     event.preventDefault()
 
     setError("")
+    setLoading(true)
 
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    })
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      })
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (!response.ok) {
-      setError("Email ou senha inválidos")
-      return
+      if (!response.ok) {
+        setError("Email ou senha inválidos")
+        return
+      }
+
+      localStorage.setItem("token", data.access_token)
+
+      onLogin()
+    } catch (error) {
+      console.error("Erro ao fazer login:", error)
+      setError("Não foi possível conectar ao servidor")
+    } finally {
+      setLoading(false)
     }
-
-    localStorage.setItem("token", data.access_token)
-
-    onLogin()
   }
 
   return (
@@ -53,6 +62,7 @@ function Login({ onLogin }) {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              disabled={loading}
               required
             />
           </div>
@@ -64,6 +74,7 @@ function Login({ onLogin }) {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              disabled={loading}
               required
             />
           </div>
@@ -74,8 +85,8 @@ function Login({ onLogin }) {
             </p>
           )}
 
-          <button type="submit">
-            Entrar
+          <button type="submit" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </button>
 
         </form>
