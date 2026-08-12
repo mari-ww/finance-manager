@@ -1071,3 +1071,60 @@ RESPONSIVE
     padding: 15px;
   }
 }
+
+/* ========================================
+LOGIN SWITCH
+======================================== */
+
+.login-switch {
+  margin-top: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  color: var(--text-muted);
+
+  font-size: 11px;
+}
+
+.login-switch button {
+  padding: 0;
+
+  background: transparent;
+
+  color: var(--pink-red);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  border: none;
+}
+
+.login-switch button:hover {
+  background: transparent;
+
+  color: var(--pink-primary);
+
+  transform: none;
+}
+
+/* ========================================
+SUCCESS MESSAGE
+======================================== */
+
+.success {
+  margin: 0;
+
+  padding: 10px;
+
+  border-radius: 8px;
+
+  background: #fce8eb;
+
+  color: var(--pink-red);
+
+  font-size: 13px;
+}
