@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import Login from "./components/Login"
 import Summary from "./components/Summary"
+import FinanceChart from "./components/FinanceChart"
 import TransactionForm from "./components/TransactionForm"
 import TransactionList from "./components/TransactionList"
 import CategoryManager from "./components/CategoryManager"
@@ -18,8 +19,32 @@ function App() {
   const [transactions, setTransactions] = useState([])
   const [categories, setCategories] = useState([])
   const [editingTransaction, setEditingTransaction] = useState(null)
-
   const [activePage, setActivePage] = useState("dashboard")
+
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user")
+
+    if (!savedUser) {
+      return {
+        name: "Usuária",
+        email: "usuario@email.com",
+      }
+    }
+
+    try {
+      return JSON.parse(savedUser)
+    } catch {
+      return {
+        name: "Usuária",
+        email: "usuario@email.com",
+      }
+    }
+  })
+
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [profileName, setProfileName] = useState("")
+  const [savingProfile, setSavingProfile] = useState(false)
 
   async function getCategories() {
     const token = localStorage.getItem("token")
@@ -122,11 +147,10 @@ function App() {
 
       try {
         data = await response.json()
-      } catch {
-        // resposta sem JSON
-      }
+      } catch {}
 
       console.error("Erro ao excluir categoria:", data)
+
       throw new Error("Erro ao excluir categoria")
     }
 
@@ -160,9 +184,7 @@ function App() {
       "Tem certeza que deseja excluir esta transação?"
     )
 
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
 
     const token = localStorage.getItem("token")
 
@@ -215,17 +237,80 @@ function App() {
   }
 
   function handleLogin() {
+    const savedUser = localStorage.getItem("user")
+
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser))
+      } catch {
+        setUser({
+          name: "Usuária",
+          email: "usuario@email.com",
+        })
+      }
+    }
+
     setIsLoggedIn(true)
   }
 
   function handleLogout() {
     localStorage.removeItem("token")
+    localStorage.removeItem("user")
 
     setIsLoggedIn(false)
     setTransactions([])
     setCategories([])
     setEditingTransaction(null)
     setActivePage("dashboard")
+    setProfileOpen(false)
+  }
+
+  function openProfileEditor() {
+    setProfileName(user.name)
+    setEditingProfile(true)
+    setProfileOpen(false)
+  }
+
+  async function handleUpdateProfile(event) {
+    event.preventDefault()
+
+    const name = profileName.trim()
+
+    if (!name) {
+      return
+    }
+
+    setSavingProfile(true)
+
+    try {
+      const token = localStorage.getItem("token")
+
+      const response = await fetch(`${API_URL}/users/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error("Erro ao atualizar perfil:", data)
+        return
+      }
+
+      localStorage.setItem("user", JSON.stringify(data))
+      setUser(data)
+      setEditingProfile(false)
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error)
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
   useEffect(() => {
@@ -235,31 +320,33 @@ function App() {
     }
   }, [isLoggedIn])
 
+  function formatToday() {
+    return new Date().toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />
   }
 
   return (
     <div className="app">
-
-      {/* SIDEBAR */}
-
       <aside className="sidebar">
-
         <div className="sidebar-brand">
-          <div className="brand-icon">🍓</div>
+          <div className="brand-logo">
+            <span>♥</span>
+          </div>
 
           <div className="brand-text">
-            Finance Manager
+            <strong>Finance</strong>
+            <span>Manager</span>
           </div>
         </div>
 
         <nav className="sidebar-nav">
-
-          <p className="nav-title">
-            MENU
-          </p>
-
           <button
             className={
               activePage === "dashboard"
@@ -268,7 +355,7 @@ function App() {
             }
             onClick={() => setActivePage("dashboard")}
           >
-            <span>🏠</span>
+            <span className="nav-icon">⌂</span>
             Dashboard
           </button>
 
@@ -280,7 +367,7 @@ function App() {
             }
             onClick={() => setActivePage("transactions")}
           >
-            <span>💳</span>
+            <span className="nav-icon">▤</span>
             Transações
           </button>
 
@@ -292,127 +379,109 @@ function App() {
             }
             onClick={() => setActivePage("categories")}
           >
-            <span>🏷️</span>
+            <span className="nav-icon">▱</span>
             Categorias
           </button>
 
+          <button
+            className="nav-item"
+            onClick={() => setActivePage("dashboard")}
+          >
+            <span className="nav-icon">▥</span>
+            Relatórios
+          </button>
         </nav>
 
-        <div className="sidebar-bottom">
+        <div className="sidebar-decoration">
+          <span>✦</span>
 
-          <div className="sidebar-tip">
-            <span>✨</span>
-
-            <div>
-              <strong>Controle seu dinheiro</strong>
-
-              <p>
-                Organize suas finanças de forma simples.
-              </p>
-            </div>
+          <div className="piggy-bank">
+            <div className="coin">R$</div>
+            <div className="pig">🐷</div>
           </div>
 
-          <button
-            className="logout-button"
-            onClick={handleLogout}
-          >
-            <span>↪</span>
-            Sair
-          </button>
-
+          <span>♥</span>
         </div>
 
+        <div className="sidebar-user-section">
+          <div className="sidebar-user">
+            <div className="user-avatar">
+              👩🏻
+            </div>
+
+            <div className="user-info">
+              <strong>{user.name}</strong>
+              <span>{user.email}</span>
+            </div>
+
+            <button
+              className="user-arrow"
+              onClick={() =>
+                setProfileOpen(!profileOpen)
+              }
+              aria-label="Abrir menu do perfil"
+            >
+              {profileOpen ? "⌃" : "⌄"}
+            </button>
+          </div>
+
+          {profileOpen && (
+            <div className="profile-menu">
+              <button onClick={openProfileEditor}>
+                <span>✎</span>
+                Editar perfil
+              </button>
+
+              <button
+                className="profile-logout"
+                onClick={handleLogout}
+              >
+                <span>↪</span>
+                Sair
+              </button>
+            </div>
+          )}
+        </div>
       </aside>
 
-      {/* ÁREA PRINCIPAL */}
-
       <main className="main-area">
-
-        {/* TOPBAR */}
-
         <header className="topbar">
-
           <div>
-            <p className="topbar-small">
-              Olá! 👋
+            <p className="topbar-greeting">
+              Olá, {user.name}! <span>♥</span>
             </p>
 
-            <h2>
-              {activePage === "dashboard" &&
-                "Visão geral"}
-
-              {activePage === "transactions" &&
-                "Suas transações"}
-
-              {activePage === "categories" &&
-                "Suas categorias"}
-            </h2>
+            <p className="topbar-subtitle">
+              Aqui está o resumo das suas finanças hoje.
+            </p>
           </div>
 
           <div className="topbar-date">
-            <span>🍓</span>
-            Finance Manager
+            <span className="calendar-icon">▣</span>
+            {formatToday()}
           </div>
-
         </header>
 
-        {/* DASHBOARD */}
-
         {activePage === "dashboard" && (
-
-          <div className="page-content">
-
-            <div className="welcome-banner">
-
-              <div>
-                <span className="banner-label">
-                  SEU RESUMO FINANCEIRO
-                </span>
-
-                <h3>
-                  Cuide do seu dinheiro com carinho 💗
-                </h3>
-
-                <p>
-                  Acompanhe suas receitas, despesas e saldo
-                  em um só lugar.
-                </p>
-              </div>
-
-              <span className="banner-decoration">
-                🍓
-              </span>
-
-            </div>
-
+          <div className="dashboard-page">
             <section className="dashboard-summary">
-              <Summary
-                transactions={transactions}
-              />
+              <Summary transactions={transactions} />
             </section>
 
-            <div className="dashboard-grid">
+            <div className="main-dashboard-grid">
+              <FinanceChart
+                transactions={transactions}
+              />
 
-              <section className="dashboard-card transaction-card">
-
-                <div className="card-header">
-
+              <section className="dashboard-card new-transaction-card">
+                <div className="card-title-row">
                   <div>
-                    <span className="section-label">
-                      LANÇAMENTO
-                    </span>
-
-                    <h3>
-                      {editingTransaction
-                        ? "Editar transação"
-                        : "Nova transação"}
-                    </h3>
+                    <h3>Nova transação</h3>
                   </div>
 
-                  <span className="card-icon">
-                    💳
+                  <span className="small-card-icon">
+                    ▣
                   </span>
-
                 </div>
 
                 <TransactionForm
@@ -430,31 +499,62 @@ function App() {
                     setEditingTransaction(null)
                   }
                 />
-
               </section>
+            </div>
 
-              <section className="dashboard-card category-card">
-
-                <div className="card-header">
-
-                  <div>
-                    <span className="section-label">
-                      ORGANIZAÇÃO
+            <div className="bottom-dashboard-grid">
+              <section className="dashboard-card transactions-preview">
+                <div className="card-title-row">
+                  <div className="title-with-icon">
+                    <span className="small-card-icon">
+                      ▣
                     </span>
 
                     <h3>
-                      Categorias
+                      Transações recentes
                     </h3>
                   </div>
 
-                  <span className="card-icon">
-                    🏷️
-                  </span>
+                  <button
+                    className="link-button"
+                    onClick={() =>
+                      setActivePage("transactions")
+                    }
+                  >
+                    Ver todas
+                  </button>
+                </div>
 
+                <TransactionList
+                  transactions={transactions.slice(0, 5)}
+                  categories={categories}
+                  onDeleteTransaction={
+                    handleDeleteTransaction
+                  }
+                  onEditTransaction={
+                    setEditingTransaction
+                  }
+                  compact
+                />
+              </section>
+
+              <section className="dashboard-card categories-preview">
+                <div className="card-title-row">
+                  <h3>Despesas do mês</h3>
+
+                  <button
+                    className="manage-button"
+                    onClick={() =>
+                      setActivePage("categories")
+                    }
+                  >
+                    Gerenciar
+                  </button>
                 </div>
 
                 <CategoryManager
                   categories={categories}
+                  transactions={transactions}
                   onCreateCategory={
                     handleCreateCategory
                   }
@@ -464,78 +564,24 @@ function App() {
                   onDeleteCategory={
                     handleDeleteCategory
                   }
+                  compact
                 />
-
               </section>
-
             </div>
-
-            <section className="dashboard-card transactions-preview">
-
-              <div className="card-header">
-
-                <div>
-                  <span className="section-label">
-                    MOVIMENTAÇÕES
-                  </span>
-
-                  <h3>
-                    Transações recentes
-                  </h3>
-                </div>
-
-                <button
-                  className="see-all-button"
-                  onClick={() =>
-                    setActivePage("transactions")
-                  }
-                >
-                  Ver todas →
-                </button>
-
-              </div>
-
-              <TransactionList
-                transactions={transactions.slice(0, 5)}
-                categories={categories}
-                onDeleteTransaction={
-                  handleDeleteTransaction
-                }
-                onEditTransaction={
-                  setEditingTransaction
-                }
-              />
-
-            </section>
-
           </div>
-
         )}
 
-        {/* TRANSAÇÕES */}
-
         {activePage === "transactions" && (
-
-          <div className="page-content">
-
-            <section className="page-card">
-
-              <div className="card-header">
-
+          <div className="dashboard-page">
+            <section className="dashboard-card full-page-card">
+              <div className="card-title-row">
                 <div>
                   <span className="section-label">
                     FINANÇAS
                   </span>
 
-                  <h3>
-                    Todas as transações
-                  </h3>
+                  <h3>Todas as transações</h3>
                 </div>
-
-                <span className="card-icon">
-                  💳
-                </span>
-
               </div>
 
               <TransactionList
@@ -548,23 +594,17 @@ function App() {
                   setEditingTransaction
                 }
               />
-
             </section>
 
-            <section className="page-card">
-
-              <div className="card-header">
-
+            <section className="dashboard-card full-page-card">
+              <div className="card-title-row">
                 <div>
                   <span className="section-label">
                     NOVO LANÇAMENTO
                   </span>
 
-                  <h3>
-                    Adicionar transação
-                  </h3>
+                  <h3>Adicionar transação</h3>
                 </div>
-
               </div>
 
               <TransactionForm
@@ -582,41 +622,26 @@ function App() {
                   setEditingTransaction(null)
                 }
               />
-
             </section>
-
           </div>
-
         )}
 
-        {/* CATEGORIAS */}
-
         {activePage === "categories" && (
-
-          <div className="page-content">
-
-            <section className="page-card category-page-card">
-
-              <div className="card-header">
-
+          <div className="dashboard-page">
+            <section className="dashboard-card full-page-card">
+              <div className="card-title-row">
                 <div>
                   <span className="section-label">
                     ORGANIZAÇÃO
                   </span>
 
-                  <h3>
-                    Gerenciar categorias
-                  </h3>
+                  <h3>Gerenciar categorias</h3>
                 </div>
-
-                <span className="card-icon">
-                  🏷️
-                </span>
-
               </div>
 
               <CategoryManager
                 categories={categories}
+                transactions={transactions}
                 onCreateCategory={
                   handleCreateCategory
                 }
@@ -627,15 +652,73 @@ function App() {
                   handleDeleteCategory
                 }
               />
-
             </section>
-
           </div>
-
         )}
 
-      </main>
+        {editingProfile && (
+          <div className="profile-modal-overlay">
+            <div className="profile-modal">
+              <div className="profile-modal-header">
+                <div>
+                  <span className="section-label">
+                    MEU PERFIL
+                  </span>
 
+                  <h3>Editar nome</h3>
+                </div>
+
+                <button
+                  className="modal-close"
+                  onClick={() =>
+                    setEditingProfile(false)
+                  }
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateProfile}>
+                <label htmlFor="profile-name">
+                  Nome
+                </label>
+
+                <input
+                  id="profile-name"
+                  type="text"
+                  value={profileName}
+                  onChange={(event) =>
+                    setProfileName(event.target.value)
+                  }
+                  maxLength={100}
+                  autoFocus
+                  required
+                />
+
+                <div className="profile-modal-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditingProfile(false)
+                    }
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                  >
+                    {savingProfile
+                      ? "Salvando..."
+                      : "Salvar"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   )
 }

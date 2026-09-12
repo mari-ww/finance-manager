@@ -19,10 +19,15 @@ function TransactionForm({
     setError("")
 
     if (editingTransaction) {
-      setCategoryId(String(editingTransaction.category_id))
+      setCategoryId(
+        String(editingTransaction.category_id)
+      )
+
       setType(editingTransaction.type)
       setAmount(editingTransaction.amount)
-      setDescription(editingTransaction.description || "")
+      setDescription(
+        editingTransaction.description || ""
+      )
       setDate(editingTransaction.date)
     }
   }, [editingTransaction])
@@ -53,8 +58,14 @@ function TransactionForm({
 
       resetForm()
     } catch (error) {
-      console.error("Erro ao salvar transação:", error)
-      setError("Não foi possível salvar a transação.")
+      console.error(
+        "Erro ao salvar transação:",
+        error
+      )
+
+      setError(
+        "Não foi possível salvar a transação."
+      )
     } finally {
       setLoading(false)
     }
@@ -70,71 +81,79 @@ function TransactionForm({
   }
 
   function handleCancel() {
-    if (loading) {
-      return
-    }
+    if (loading) return
 
     resetForm()
     onCancelEdit()
   }
 
   return (
-    <section>
-      <h2>
-        {editingTransaction
-          ? "Editar transação"
-          : "Nova transação"}
-      </h2>
+    <form
+      className="transaction-form"
+      onSubmit={handleSubmit}
+    >
 
-      <form
-        className="transaction-form"
-        onSubmit={handleSubmit}
-      >
-        <div className="form-group">
-          <label>Categoria</label>
+      <div className="form-group">
+        <label>Categoria</label>
 
-          <select
-            value={categoryId}
-            onChange={(event) =>
-              setCategoryId(event.target.value)
+        <select
+          value={categoryId}
+          onChange={(event) =>
+            setCategoryId(event.target.value)
+          }
+          disabled={loading}
+          required
+        >
+          <option value="">
+            Selecione uma categoria
+          </option>
+
+          {categories.map((category) => (
+            <option
+              key={category.id}
+              value={category.id}
+            >
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label>Tipo</label>
+
+        <div className="type-selector">
+
+          <button
+            type="button"
+            className={
+              type === "expense"
+                ? "type-button selected"
+                : "type-button"
             }
+            onClick={() => setType("expense")}
             disabled={loading}
-            required
           >
-            <option value="">
-              Selecione uma categoria
-            </option>
+            Despesa
+          </button>
 
-            {categories.map((category) => (
-              <option
-                key={category.id}
-                value={category.id}
-              >
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Tipo</label>
-
-          <select
-            value={type}
-            onChange={(event) =>
-              setType(event.target.value)
+          <button
+            type="button"
+            className={
+              type === "income"
+                ? "type-button selected"
+                : "type-button"
             }
+            onClick={() => setType("income")}
             disabled={loading}
           >
-            <option value="expense">
-              Despesa
-            </option>
+            Receita
+          </button>
 
-            <option value="income">
-              Receita
-            </option>
-          </select>
         </div>
+      </div>
+
+      <div className="form-row">
 
         <div className="form-group">
           <label>Valor</label>
@@ -147,13 +166,17 @@ function TransactionForm({
             onChange={(event) =>
               setAmount(event.target.value)
             }
+            placeholder="R$ 0,00"
             disabled={loading}
             required
           />
         </div>
 
         <div className="form-group">
-          <label>Descrição</label>
+          <label>
+            Descrição{" "}
+            <span>(opcional)</span>
+          </label>
 
           <input
             type="text"
@@ -161,51 +184,67 @@ function TransactionForm({
             onChange={(event) =>
               setDescription(event.target.value)
             }
+            placeholder="Digite uma descrição"
             disabled={loading}
           />
         </div>
 
-        <div className="form-group">
-          <label>Data</label>
+      </div>
 
-          <input
-            type="date"
-            value={date}
-            onChange={(event) =>
-              setDate(event.target.value)
-            }
+      <div className="form-group date-group">
+
+        <label>Data</label>
+
+        <input
+          type="date"
+          value={date}
+          onChange={(event) =>
+            setDate(event.target.value)
+          }
+          disabled={loading}
+          required
+        />
+
+      </div>
+
+      {error && (
+        <p className="error">
+          {error}
+        </p>
+      )}
+
+      <div className="form-actions">
+
+        <button
+          className="submit-transaction-button"
+          type="submit"
+          disabled={loading}
+        >
+          {loading
+            ? "Salvando..."
+            : editingTransaction
+              ? "Salvar alterações"
+              : "Adicionar transação"}
+
+          {!loading && !editingTransaction && (
+            <span>+</span>
+          )}
+        </button>
+
+        {editingTransaction && (
+          <button
+            className="cancel-button"
+            type="button"
+            onClick={handleCancel}
             disabled={loading}
-            required
-          />
-        </div>
-
-        {error && (
-          <p className="error">
-            {error}
-          </p>
+          >
+            Cancelar
+          </button>
         )}
 
-        <div>
-          <button type="submit" disabled={loading}>
-            {loading
-              ? "Salvando..."
-              : editingTransaction
-                ? "Salvar alterações"
-                : "Adicionar transação"}
-          </button>
+      </div>
 
-          {editingTransaction && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={loading}
-            >
-              Cancelar
-            </button>
-          )}
-        </div>
-      </form>
-    </section>
+    </form>
   )
 }
 

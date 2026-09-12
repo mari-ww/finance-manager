@@ -5,6 +5,7 @@ const API_URL = "http://localhost:8000"
 function Login({ onLogin }) {
   const [mode, setMode] = useState("login")
 
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -17,6 +18,7 @@ function Login({ onLogin }) {
     setMode(newMode)
     setError("")
     setSuccess("")
+    setName("")
     setEmail("")
     setPassword("")
     setConfirmPassword("")
@@ -49,6 +51,7 @@ function Login({ onLogin }) {
       }
 
       localStorage.setItem("token", data.access_token)
+      localStorage.setItem("user", JSON.stringify(data.user))
 
       onLogin()
     } catch (error) {
@@ -64,6 +67,11 @@ function Login({ onLogin }) {
 
     setError("")
     setSuccess("")
+
+    if (!name.trim()) {
+      setError("Digite seu nome")
+      return
+    }
 
     if (password !== confirmPassword) {
       setError("As senhas não são iguais")
@@ -84,6 +92,7 @@ function Login({ onLogin }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name: name.trim(),
           email,
           password,
         }),
@@ -106,6 +115,7 @@ function Login({ onLogin }) {
       setSuccess("Conta criada com sucesso! Agora faça login.")
 
       setMode("login")
+      setName("")
       setPassword("")
       setConfirmPassword("")
     } catch (error) {
@@ -120,9 +130,7 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-page">
-
       <div className="login-card">
-
         <h1>Finance Manager</h1>
 
         <p>
@@ -138,6 +146,21 @@ function Login({ onLogin }) {
               : handleRegister
           }
         >
+          {!isLogin && (
+            <div className="form-group">
+              <label>Nome</label>
+
+              <input
+                type="text"
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
+                disabled={loading}
+                required
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label>Email</label>
@@ -207,11 +230,9 @@ function Login({ onLogin }) {
                 ? "Entrar"
                 : "Criar conta"}
           </button>
-
         </form>
 
         <div className="login-switch">
-
           {isLogin ? (
             <>
               <span>
@@ -241,11 +262,8 @@ function Login({ onLogin }) {
               </button>
             </>
           )}
-
         </div>
-
       </div>
-
     </div>
   )
 }

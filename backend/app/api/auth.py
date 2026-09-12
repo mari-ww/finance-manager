@@ -7,9 +7,13 @@ from app.db.models.user import User
 from app.schemas.auth import LoginRequest
 from app.core.security import create_access_token
 
+
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+)
 
 
 def get_db():
@@ -26,7 +30,11 @@ def login(
     data: LoginRequest,
     db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.email == data.email).first()
+    user = (
+        db.query(User)
+        .filter(User.email == data.email)
+        .first()
+    )
 
     if not user:
         raise HTTPException(
@@ -34,7 +42,10 @@ def login(
             detail="Invalid email or password",
         )
 
-    if not pwd_context.verify(data.password, user.password_hash):
+    if not pwd_context.verify(
+        data.password,
+        user.password_hash,
+    ):
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password",
@@ -45,4 +56,9 @@ def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+        },
     }

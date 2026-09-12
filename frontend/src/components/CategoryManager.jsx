@@ -2,13 +2,16 @@ import { useEffect, useState } from "react"
 
 function CategoryManager({
   categories,
+  transactions = [],
   onCreateCategory,
   onUpdateCategory,
   onDeleteCategory,
+  compact = false,
 }) {
   const [name, setName] = useState("")
   const [type, setType] = useState("expense")
-  const [editingCategory, setEditingCategory] = useState(null)
+  const [editingCategory, setEditingCategory] =
+    useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -24,9 +27,7 @@ function CategoryManager({
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (!name.trim()) {
-      return
-    }
+    if (!name.trim()) return
 
     setError("")
     setLoading(true)
@@ -50,8 +51,14 @@ function CategoryManager({
 
       resetForm()
     } catch (error) {
-      console.error("Erro ao salvar categoria:", error)
-      setError("Não foi possível salvar a categoria.")
+      console.error(
+        "Erro ao salvar categoria:",
+        error
+      )
+
+      setError(
+        "Não foi possível salvar a categoria."
+      )
     } finally {
       setLoading(false)
     }
@@ -64,9 +71,7 @@ function CategoryManager({
   }
 
   function handleCancel() {
-    if (loading) {
-      return
-    }
+    if (loading) return
 
     setEditingCategory(null)
     resetForm()
@@ -77,9 +82,7 @@ function CategoryManager({
       "Tem certeza que deseja excluir esta categoria?"
     )
 
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
 
     setError("")
     setLoading(true)
@@ -87,25 +90,171 @@ function CategoryManager({
     try {
       await onDeleteCategory(categoryId)
     } catch (error) {
-      console.error("Erro ao excluir categoria:", error)
-      setError("Não foi possível excluir a categoria.")
+      console.error(
+        "Erro ao excluir categoria:",
+        error
+      )
+
+      setError(
+        "Não foi possível excluir a categoria."
+      )
     } finally {
       setLoading(false)
     }
   }
 
+function getCategoryTotal(categoryId) {
+  const now = new Date()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
+
+  return transactions
+    .filter((transaction) => {
+      if (
+        transaction.category_id !== categoryId ||
+        transaction.type !== "expense" ||
+        !transaction.date
+      ) {
+        return false
+      }
+
+      const [year, month] = transaction.date
+        .split("-")
+        .map(Number)
+
+      return (
+        year === currentYear &&
+        month - 1 === currentMonth
+      )
+    })
+    .reduce(
+      (total, transaction) =>
+        total + Number(transaction.amount),
+      0
+    )
+}
+
+  const expenseCategories =
+    categories.filter(
+      (category) => category.type === "expense"
+    )
+
+  const totalExpenses =
+    expenseCategories.reduce(
+      (total, category) =>
+        total + getCategoryTotal(category.id),
+      0
+    )
+
+  function formatCurrency(value) {
+    return Number(value).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })
+  }
+
+  function getPercentage(value) {
+    if (totalExpenses === 0) return 0
+
+    return Math.round(
+      (value / totalExpenses) * 100
+    )
+  }
+
+  const categoryColors = [
+    "category-orange",
+    "category-blue",
+    "category-purple",
+    "category-pink",
+    "category-gray",
+  ]
+
+  if (compact) {
+    return (
+      <div className="category-preview-list">
+
+        {expenseCategories.length === 0 ? (
+          <div className="empty-category">
+            Nenhuma categoria cadastrada.
+          </div>
+        ) : (
+          expenseCategories
+            .map((category, index) => {
+
+              const total =
+                getCategoryTotal(category.id)
+
+              const percentage =
+                getPercentage(total)
+
+              return (
+                <div
+                  className="category-preview-row"
+                  key={category.id}
+                >
+
+                  <div className="category-name-area">
+
+                    <span
+                      className={`category-circle ${
+                        categoryColors[
+                          index %
+                            categoryColors.length
+                        ]
+                      }`}
+                    >
+                      {index === 0
+                        ? "♨"
+                        : index === 1
+                          ? "⌁"
+                          : index === 2
+                            ? "◈"
+                            : index === 3
+                              ? "♥"
+                              : "•••"}
+                    </span>
+
+                    <span>
+                      {category.name}
+                    </span>
+
+                  </div>
+
+                  <span className="category-total">
+                    {formatCurrency(total)}
+                  </span>
+
+                  <div className="category-progress">
+                    <div>
+                      <span
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </div>
+
+                    <small>
+                      {percentage}%
+                    </small>
+                  </div>
+
+                </div>
+              )
+            })
+        )}
+
+      </div>
+    )
+  }
+
   return (
-    <section className="category-manager">
-      <h2>
-        {editingCategory
-          ? "Editar categoria"
-          : "Categorias"}
-      </h2>
+    <section className="category-manager-full">
 
       <form
         onSubmit={handleSubmit}
         className="category-form"
       >
+
         <div className="form-group">
           <label>Nome</label>
 
@@ -147,8 +296,12 @@ function CategoryManager({
           </p>
         )}
 
-        <div>
-          <button type="submit" disabled={loading}>
+        <div className="form-actions">
+
+          <button
+            type="submit"
+            disabled={loading}
+          >
             {loading
               ? "Salvando..."
               : editingCategory
@@ -161,56 +314,71 @@ function CategoryManager({
               type="button"
               onClick={handleCancel}
               disabled={loading}
+              className="cancel-button"
             >
               Cancelar
             </button>
           )}
+
         </div>
+
       </form>
 
-      <div className="category-list">
+      <div className="category-list-full">
+
         {categories.length === 0 ? (
-          <p>Nenhuma categoria cadastrada.</p>
+          <div className="empty-state">
+            Nenhuma categoria cadastrada.
+          </div>
         ) : (
-          <ul>
-            {categories.map((category) => (
-              <li key={category.id}>
-                <span>
-                  {category.name}
-                </span>
+          categories.map((category) => (
 
-                <span>
-                  {category.type === "income"
-                    ? "Receita"
-                    : "Despesa"}
-                </span>
+            <div
+              className="category-full-row"
+              key={category.id}
+            >
 
-                <div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditingCategory(category)
-                    }
-                    disabled={loading}
-                  >
-                    Editar
-                  </button>
+              <span>
+                {category.name}
+              </span>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDelete(category.id)
-                    }
-                    disabled={loading}
-                  >
-                    Excluir
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+              <span className="category-type">
+                {category.type === "income"
+                  ? "Receita"
+                  : "Despesa"}
+              </span>
+
+              <div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingCategory(category)
+                  }
+                  disabled={loading}
+                >
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDelete(category.id)
+                  }
+                  disabled={loading}
+                >
+                  Excluir
+                </button>
+
+              </div>
+
+            </div>
+
+          ))
         )}
+
       </div>
+
     </section>
   )
 }
